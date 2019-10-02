@@ -15,3 +15,13 @@ Usando los modelos:
 
 
 ##Generar grafos con 30, 100, y 500 nodos.
+
+###Segunda Entrega:
+usando los algoritmos de 
+-BFS
+
+-DPS
+
+-DPS de modo iterativo
+
+generar los arboles de los grafos anteriores con 30, 100 y 500 nodos
