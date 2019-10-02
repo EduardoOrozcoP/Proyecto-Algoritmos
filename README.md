@@ -23,8 +23,8 @@ usando los algoritmos de
 
 -BFS
 
--DPS
+-DFS
 
--DPS de modo iterativo
+-DFS de modo iterativo
 
 generar los arboles de los grafos anteriores con 30, 100 y 500 nodos
