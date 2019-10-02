@@ -17,7 +17,10 @@ Usando los modelos:
 ##Generar grafos con 30, 100, y 500 nodos.
 
 ###Segunda Entrega:
-usando los algoritmos de 
+
+usando los algoritmos de
+
+
 -BFS
 
 -DPS
