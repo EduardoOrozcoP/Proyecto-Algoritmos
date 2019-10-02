@@ -229,4 +229,76 @@ public class GraphM {
 	    output.close();
 	  }
 	  }
+	  ////Arboles
+	  public GraphM BFS(int s) {
+		  GraphM arbol = new GraphM(this.getNumNodes());
+		  Boolean[] discovered = new Boolean[this.getNumNodes()];
+		  PriorityQueue<Integer> L = new PriorityQueue<Integer>();
+		  discovered[s] = true;
+		  for(int i = 0; i < this.getNumNodes(); i++) {
+			  if (i != s) {
+				  discovered[i] = false;
+				  
+			  }
+		  }
+		  L.add(s);
+		  while (L.peek() != null) {
+			  int u = L.poll();
+			  HashSet<Nodo>aristas = this.getEdges(u);
+			  for(Nodo n : aristas) {
+				  if(!discovered[n.getIndex()]){
+					  arbol.conectarNodos(u, n.getIndex());
+					  discovered[n.getIndex()] = true;
+					  L.add(n.getIndex());
+				  }
+			  }
+		  }
+		  return arbol;
+	  }
+	  
+	  public GraphM DFS (int s) {
+		  GraphM arbol = new GraphM(this.getNumNodes());
+		  Boolean[] discovered = new Boolean[this.getNumNodes()];
+		  for(int i = 0; i < this.getNumNodes(); i++) {
+			  discovered[i] = false;
+		  }
+		  recursivo(s, discovered, arbol);
+		  return arbol;
+	  }
+	  
+	  private void recursivo(int u, Boolean[] discovered ,GraphM arbol) {
+		  discovered[u] = true;
+		  HashSet<Nodo> aristas = this.getEdges(u);
+		  for(Nodo n: aristas) {
+			  if(!discovered[n.getIndex()]) {
+				  arbol.conectarNodos(u, n.getIndex());
+				  recursivo(n.getIndex(), discovered,arbol);
+			  }
+		  }
+	  }
+	  public GraphM DFS_I(int s) {
+		  GraphM arbol = new GraphM(this.getNumNodes());
+		  Boolean[] explored = new Boolean[this.getNumNodes()];
+		  Stack<Integer> S = new Stack<Integer>();
+		  Integer[] parent = new Integer[this.getNumNodes()];
+		  for(int i = 0; i < this.getNumNodes(); i++) {
+			  explored[i] = false;
+		  }
+	  S.push(s);
+	  while(!S.isEmpty()) {
+		  int u = S.pop();
+		  if(!explored[u]) {
+			  explored[u] = true;
+			  if(u != s) {
+				  arbol.conectarNodos(u, parent[u]);
+			  }
+			  HashSet<Nodo> aristas = this.getEdges(u);
+			  for(Nodo n : aristas) {
+				  S.push(n.getIndex());
+				  parent [n.getIndex()] = u;
+			  }
+		  }
+	  }
+	  return arbol;
+	  }
 }
