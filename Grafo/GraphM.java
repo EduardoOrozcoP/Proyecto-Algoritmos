@@ -1,5 +1,4 @@
 package Grafo;
-
 import Grafo.Nodo;
 import Grafo.Arista;
 import java.util.*;
@@ -13,6 +12,8 @@ public class GraphM {
 	  private final int numeroNodos; 
 	  private int numeroAristas;  
 	  private static Formatter output; 
+	  private HashMap<Nodo, HashSet<Arista>>incidencia;
+	  private Boolean weighted;
 	 
 
 
@@ -20,13 +21,33 @@ public class GraphM {
 
 	  public GraphM(int numNodos) {
 	    this.graph = new HashMap<Nodo, HashSet<Nodo>>();
+	    this.incidencia = new HashMap<Nodo, HashSet<Arista>>();
 	    this.numeroNodos = numNodos;
 	    this.nodes = new Nodo[numNodos];
 	    for (int i = 0; i < numNodos; i++) {
 	      Nodo n = new Nodo(i);
 	      this.nodes[i] = n;
 	      this.graph.put(n, new HashSet<Nodo>());
+	      this.incidencia.put(n,  new HashSet<Arista>());
 	    }
+	    this.weighted = false;
+	  }
+	  public GraphM(int numNodos, String modelo) {
+		  this.graph = new HashMap<Nodo, HashSet<Nodo>>();
+		  this.incidencia = new HashMap<Nodo, HashSet<Arista>>();
+		  this.numeroNodos = numNodos;
+		  this.nodes = new Nodo[numNodos];
+		  Random coorX = new Random();
+		  Random coorY = new Random();
+		  if (modelo == "geo-uniforme") {
+			  for (int i = 0; i < numNodos; i++) {
+			  Nodo n = new Nodo(i, coorX.nextDouble(), coorY.nextDouble());
+			  this.nodes[i] = n;
+			  this.graph.put(n, new HashSet<Nodo>());
+			  this.incidencia.put(n, new HashSet<Arista>());
+		  }
+			  }
+		  this.weighted = false;
 	  }
 	  //Métodos auxiliares//
 	  
@@ -81,29 +102,73 @@ public class GraphM {
 	  public Nodo getNode(int i) {
 		  return this.nodes[i];
 		  }
-
+      public Boolean getWeightedFlag() {
+    	  return this.weighted; 
+      }
 
 	  public HashSet<Nodo> getEdges(int i) {
 	    Nodo n = this.getNode(i);
 	    return this.graph.get(n);
 	  }
-
+	  public HashSet<Arista> getWeightedEdges(int i){
+		  Nodo n = this.getNode(i);
+		  return this.incidencia.get(n);
+	  }
+	  public void setWeighted() {
+		  this.weighted = true;
+	  }
+	  
+	  public void setIncidencia(int i, HashSet<Arista> aristasPeso) {
+		  this.incidencia.put(this.getNode(i), aristasPeso);
+	  }
+	  
+	  public void setAristaPeso(int i, int j, double peso) {
+		  if(!this.existeConexion(i, j))  this.conectarNodos(i,j);
+		  Arista aristaNuevaij = new Arista(i, j, peso);
+		  Arista aristaNuevaji = new Arista(j, i, peso);
+		  HashSet<Arista> aristaNodoi = this.getWeightedEdges(i);
+		  HashSet<Arista> aristaNodoj = this.getWeightedEdges(j);
+		  aristaNodoi.add(aristaNuevaij);
+		  aristaNodoj.add(aristaNuevaji);
+		  this.setIncidencia(i,aristaNodoi);
+		  this.setIncidencia(j,aristaNodoj);
+		  if(!this.getWeightedFlag())  this.setWeighted();
+	  }
 	
 	  //////////Método toString para representación en String del Grafo//////////
 	  public String toString() {
-	    String salida;
-	      salida ="graph {\n";
-	      for (int i = 0; i < this.getNumNodes(); i++) {
-	        salida += this.getNode(i).getName() + ";\n";
-	      }
-	      for (int i = 0; i < this.getNumNodes(); i++) {
-	        HashSet<Nodo> aristas = this.getEdges(i);
-	        for (Nodo n : aristas) {
-	        salida += this.getNode(i).getName() + " -> " + n.getName() + ";\n";
-	        }
-	       }
-	      salida += "}\n";
-	    return salida;
+		  String salida;
+		    if (this.getWeightedFlag()) { 
+		      salida ="graph {\n";        
+		      for (int i = 0; i < this.getNumNodes(); i++) {
+		        salida += this.getNode(i).getName() + " [label=\""
+		        + this.getNode(i).getName() + " ("+ this.getNode(i).getDistance()
+		        + ")\"];\n";
+		      }
+		      for (int i = 0; i < this.getNumNodes(); i++) {
+		        HashSet<Arista> aristas = this.getWeightedEdges(i);
+		        for (Arista e : aristas) {
+		        salida += e.getN1() + " -- " + e.getN2()
+		        + " [weight=" + e.getWeight()+"" + " label="+e.getWeight()+""
+		        + "];\n";
+		        }
+		       }
+		      salida += "}\n";
+		    }
+		    else { 
+		      salida ="graph {\n";
+		      for (int i = 0; i < this.getNumNodes(); i++) {
+		        salida += this.getNode(i).getName() + ";\n";
+		      }
+		      for (int i = 0; i < this.getNumNodes(); i++) {
+		        HashSet<Nodo> aristas = this.getEdges(i);
+		        for (Nodo n : aristas) {
+		        salida += this.getNode(i).getName() + " -- " + n.getName() + ";\n";
+		        }
+		       }
+		      salida += "}\n";
+		    }
+		    return salida;
 	  }
 
 	  //////////Métodos de instancia de los modelos de generación//////////
@@ -301,4 +366,61 @@ public class GraphM {
 	  }
 	  return arbol;
 	  }
+	  
+	  ///Dijkstra
+	  
+	  ///metodo de asignacion de pesos
+	  public GraphM EdgeValues(double min, double max) {
+		  GraphM grafoPesado = new GraphM(this.getNumNodes());
+		  Random rand = new Random();
+		  double peso;
+		  for(int i = 0; i< this.getNumNodes();i++) {
+			  for(int j = 0; j < this.getNumNodes(); j++) {
+				  if(this.existeConexion(i, j)) {
+					  peso = rand.nextFloat()*(max - min)+ min;
+					  grafoPesado.setAristaPeso(i, j, peso);
+				  }
+			  }
+		  }
+		  return grafoPesado;
+	  }
+	  
+	  public GraphM Dijkstra(int s) {
+		  GraphM arbol = new GraphM(this.getNumNodes());
+		  double inf = Double.POSITIVE_INFINITY;
+		  Integer[] padres = new Integer[arbol.getNumNodes()];
+		  for(int i = 0; i < arbol.getNumNodes();i++) {
+			  this.getNode(i).setDistance(inf);
+			  padres[i] = null;
+		  }
+		  this.getNode(s).setDistance(0.0);
+		  padres[s] = s;
+		  PriorityQueue<Nodo> distPQ = new PriorityQueue<>(vertexDistanceComp);
+		  for (int i = 0;i < this.getNumNodes(); i++) {
+			  distPQ.add(this.getNode(i));
+		  }
+		  while (distPQ.peek() != null) {
+			  Nodo u = distPQ.poll();
+			  HashSet<Arista> aristas = this.getWeightedEdges(u.getIndex());
+			  for(Arista e : aristas) {
+				  if(this.getNode(e.getIntN2()).getDistance() > this.getNode(u.getIndex()).getDistance() + e.getWeight()) {
+					  this.getNode(e.getIntN2()).setDistance(this.getNode(u.getIndex()).getDistance() + e.getWeight());
+					  padres[e.getIntN2()] = u.getIndex();
+				  }
+			  }
+		  }
+		  for(int i = 0; i < arbol.getNumNodes();i++) {
+			  arbol.setAristaPeso(i, padres[i], 1.0);
+			  arbol.getNode(i).setDistance(this.getNode(i).getDistance());
+			  
+		  }
+		  return arbol;
+	  }
+	  
+	  Comparator<Nodo> vertexDistanceComp = new Comparator<Nodo>() {
+		  @Override
+		  public int compare(Nodo n1, Nodo n2) {
+			  return Double.compare(n1.getDistance(), n2.getDistance());
+		  }
+	  };
 }
